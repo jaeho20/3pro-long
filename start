@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유튜브 알리익스프레스 롱폼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #2563eb; }
+        .hidden { display: none; }
+        .spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 헤더 -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <h1 class="text-2xl font-bold text-gray-900">유튜브 알리익스프레스 롱폼</h1>
+            <p class="text-gray-600">자동 영상 제작 및 업로드 시스템</p>
+        </div>
+    </div>
+
+    <!-- 탭 네비게이션 -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4">
+            <nav class="flex space-x-8">
+                <button onclick="showTab('main')" id="tab-main" class="tab-active flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm">
+                    ⚙️ 메인화면
+                </button>
+                <button onclick="showTab('schedule')" id="tab-schedule" class="flex items-center gap-2 py-4 px-2 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    📅 예약발행
+                </button>
+                <button onclick="showTab('design')" id="tab-design" class="flex items-center gap-2 py-4 px-2 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    🎨 디자인
+                </button>
+                <button onclick="showTab('accounts')" id="tab-accounts" class="flex items-center gap-2 py-4 px-2 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    👥 계정관리
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- 상태 표시줄 -->
+    <div class="bg-blue-50 border-b border-blue-200">
+        <div class="max-w-7xl mx-auto px-4 py-2">
+            <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-gray-400" id="scheduler-status"></div>
+                        스케줄러: <span id="scheduler-text">중지됨</span>
+                    </span>
+                    <span>연결된 계정: 2개</span>
+                    <span>제작된 영상: <span id="video-count">2</span>개</span>
+                </div>
+                <div class="text-gray-600">
+                    마지막 업데이트: <span id="last-update"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        
+        <!-- 메인화면 -->
+        <div id="content-main">
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 유튜브 정보 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            📺 유튜브 정보
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">계정 설정</label>
+                                <select class="w-full p-2 border rounded-md">
+                                    <option value="">계정 선택</option>
+                                    <option value="user1@gmail.com">user1@gmail.com</option>
+                                    <option value="user2@gmail.com">user2@gmail.com</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">채널명</label>
+                                <input type="text" value="UCmO1eglNjtAf6dVUPe4rqUA" readonly class="w-full p-2 border rounded-md bg-gray-50" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 알리익스프레스 정보 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            🔍 알리익스프레스 정보
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">아이디</label>
+                                <input type="text" value="testuser123" class="w-full p-2 border rounded-md" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">비밀번호</label>
+                                <input type="password" value="********" class="w-full p-2 border rounded-md" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">트래킹 ID</label>
+                                <input type="text" value="default" class="w-full p-2 border rounded-md" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 영상 제작 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            ✏️ 영상 제작
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">검색어</label>
+                                <input type="text" id="keyword-input" value="무선이어폰" placeholder="수집할 상품 키워드" class="w-full p-2 border rounded-md" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">상품수</label>
+                                <select id="product-count" class="w-full p-2 border rounded-md">
+                                    <option value="3">3개</option>
+                                    <option value="5" selected>5개</option>
+                                    <option value="7">7개</option>
+                                    <option value="10">10개</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium">BGM 볼륨: <span id="bgm-volume-display">50</span>%</label>
+                                <input type="range" id="bgm-volume" min="0" max="100" value="50" class="w-full" oninput="document.getElementById('bgm-volume-display').textContent = this.value" />
+                            </div>
+                            <button onclick="generateVideo()" id="generate-btn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2">
+                                📹 영상 제작
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 유튜브 포스팅 섹션 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        📤 유튜브 포스팅
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">영상 선택</label>
+                            <select id="video-select" class="w-full p-2 border rounded-md mb-4" onchange="selectVideo()">
+                                <option value="">영상을 선택하세요</option>
+                                <option value="1">무선이어폰 추천 Top5 (2025.1.17)</option>
+                                <option value="2">블루투스스피커 Best 10 (2025.1.16)</option>
+                            </select>
+                            
+                            <div id="selected-video" class="bg-gray-50 p-4 rounded-md mb-4 hidden">
+                                <div class="text-lg mb-2" id="video-thumbnail">🎧</div>
+                                <h4 class="font-medium" id="video-title">무선이어폰 추천 Top5</h4>
+                                <p class="text-sm text-gray-600" id="video-date">제작일: 2025.1.17</p>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">제목</label>
+                                    <input type="text" id="upload-title" class="w-full p-2 border rounded-md" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">설명</label>
+                                    <textarea rows="4" class="w-full p-2 border rounded-md">🛒 최저가 상품 링크와 할인 쿠폰 정보를 확인하세요!
+
+⭐ 구독과 좋아요는 큰 힘이 됩니다!
+
+#알리익스프레스 #추천상품 #할인정보</textarea>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="private" />
+                                    <label for="private" class="text-sm">비공개</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="space-y-4">
+                                <div id="upload-progress" class="hidden">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>업로드 진행률</span>
+                                        <span id="progress-percent">0%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="uploadVideo()" class="w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 flex items-center justify-center gap-2">
+                                    📤 유튜브 업로드
+                                </button>
+                                
+                                <button onclick="generateAndUpload()" class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 flex items-center justify-center gap-2">
+                                    📹 영상 제작 + 업로드
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 제작된 영상 목록 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4">제작된 영상 목록</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="video-list">
+                        <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="text-4xl mb-2 text-center">🎧</div>
+                            <h4 class="font-medium text-sm mb-1">무선이어폰 추천 Top5</h4>
+                            <p class="text-xs text-gray-600 mb-2">2025.1.17</p>
+                            <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded">완료</span>
+                        </div>
+                        <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="text-4xl mb-2 text-center">🔊</div>
+                            <h4 class="font-medium text-sm mb-1">블루투스스피커 Best 10</h4>
+                            <p class="text-xs text-gray-600 mb-2">2025.1.16</p>
+                            <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded">완료</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 예약발행 화면 -->
+        <div id="content-schedule" class="hidden">
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">예약발행</h2>
+                    <button onclick="toggleScheduler()" id="scheduler-btn" class="px-4 py-2 rounded-md flex items-center gap-2 bg-green-600 text-white hover:bg-green-700">
+                        ▶️ 스케줄러 시작
+                    </button>
+                </div>
+
+                <!-- 간편 예약 등록 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4">간편 예약등록</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">키워드</label>
+                            <textarea id="schedule-keywords" rows="3" placeholder="키워드를 줄바꿈으로 구분하여 입력" class="w-full p-2 border rounded-md"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">시작날짜</label>
+                            <input type="date" id="schedule-date" class="w-full p-2 border rounded-md" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">시작시간</label>
+                            <input type="time" id="schedule-time" class="w-full p-2 border rounded-md" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">발행간격 (시간)</label>
+                            <input type="number" min="1" value="24" class="w-full p-2 border rounded-md" />
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="addSchedule()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                            ➕ 예약 등록
+                        </button>
+                        <button class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 flex items-center gap-2">
+                            📊 엑셀 대량등록
+                        </button>
+                        <button class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2">
+                            📥 엑셀 내보내기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 예약 목록 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4">예약 목록</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left p-2">ID</th>
+                                    <th class="text-left p-2">키워드</th>
+                                    <th class="text-left p-2">계정</th>
+                                    <th class="text-left p-2">발행일시</th>
+                                    <th class="text-left p-2">상태</th>
+                                    <th class="text-left p-2">작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="p-2">1</td>
+                                    <td class="p-2">무선이어폰</td>
+                                    <td class="p-2">user1@gmail.com</td>
+                                    <td class="p-2">2025.1.18 10:48</td>
+                                    <td class="p-2"><span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800">완료</span></td>
+                                    <td class="p-2"><button onclick="removeSchedule(1)" class="text-red-600 hover:text-red-800">🗑️</button></td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="p-2">2</td>
+                                    <td class="p-2">블루투스스피커</td>
+                                    <td class="p-2">user2@gmail.com</td>
+                                    <td class="p-2">2025.1.19 14:30</td>
+                                    <td class="p-2"><span class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">대기</span></td>
+                                    <td class="p-2"><button onclick="removeSchedule(2)" class="text-red-600 hover:text-red-800">🗑️</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 디자인 화면 -->
+        <div id="content-design" class="hidden">
+            <div class="space-y-6">
+                <h2 class="text-2xl font-bold">디자인 설정</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 설정 패널 -->
+                    <div class="space-y-4">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-bold mb-4">배경 및 폰트</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">배경이미지 (1920×1080)</label>
+                                    <button class="w-full p-2 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400">
+                                        클릭하여 이미지 업로드
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">두꺼운 폰트 (TTF)</label>
+                                    <button class="w-full p-2 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400">
+                                        폰트 파일 업로드
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">얇은 폰트 (TTF)</label>
+                                    <button class="w-full p-2 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400">
+                                        폰트 파일 업로드
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg font-bold mb-4">텍스트 설정</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">제목 텍스트</label>
+                                    <input type="text" value="[SEARCH] TOP[TOTAL]" class="w-full p-2 border rounded-md" />
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">폰트 크기</label>
+                                        <input type="number" value="45" class="w-full p-2 border rounded-md" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">텍스트 색상</label>
+                                        <input type="color" value="#00bcd4" class="w-full p-2 border rounded-md" />
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="bold" checked />
+                                    <label for="bold" class="text-sm">Bold</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 미리보기 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4">미리보기</h3>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 bg-gradient-to-br from-purple-100 to-blue-100 min-h-96 flex flex-col items-center justify-center">
+                            <div class="text-center mb-6">
+                                <h2 class="text-2xl font-bold text-cyan-600 mb-2">무선이어폰 TOP 5</h2>
+                                <p class="text-lg text-purple-600">🔥 인기상품 🔥</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-5 gap-4 mb-6">
+                                <div class="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center text-2xl">🎧</div>
+                                <div class="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center text-2xl">🎵</div>
+                                <div class="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center text-2xl">📱</div>
+                                <div class="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center text-2xl">⚡</div>
+                                <div class="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center text-2xl">🔊</div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <p class="text-sm text-gray-600">제품 및 소량정보는 더보기 또는 고정댓글 확인!</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 flex gap-2">
+                            <button class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">미리보기 업데이트</button>
+                            <button class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">디자인 저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 계정관리 화면 -->
+        <div id="content-accounts" class="hidden">
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">계정 관리</h2>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                        ➕ 계정 추가
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4">등록된 계정</h3>
+                    <div class="space-y-4">
+                        <div class="border rounded-lg p-4 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-medium">user1@gmail.com</h4>
+                                <p class="text-sm text-gray-600">채널: UCmO1eglNjtAf6dVUPe4rqUA</p>
+                                <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">연결됨</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="text-blue-600 hover:text-blue-800">✏️</button>
+                                <button class="text-red-600 hover:text-red-800">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="border rounded-lg p-4 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-medium">user2@gmail.com</h4>
+                                <p class="text-sm text-gray-600">채널: UCxN2fglNjtAf6dVUPe4rqUB</p>
+                                <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">연결됨</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="text-blue-600 hover:text-blue-800">✏️</button>
+                                <button class="text-red-600 hover:text-red-800">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let isSchedulerRunning = false;
+        let schedulerInterval = null;
+        let uploadInterval = null;
+        let generateTimeout = null;
+        let videoCounter = 2;
+        let scheduleCounter = 2;
+
+        // 시간 업데이트
+        function updateTime() {
+            document.getElementById('last-update').textContent = new Date().toLocaleString('ko-KR');
+        }
+        updateTime();
+        setInterval(updateTime, 30000);
+
+        // 탭 전환
+        function showTab(tabName) {
+            // 모든 탭 숨기기
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.className = el.className.replace('tab-active', '').replace('text-blue-600', 'text-gray-500').replace('border-blue-500', 'border-transparent');
+            });
+            
+            // 선택된 탭 보이기
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            const activeTab = document.getElementById('tab-' + tabName);
+            activeTab.className = activeTab.className.replace('text-gray-500', 'text-blue-600').replace('border-transparent', 'border-blue-500') + ' tab-active';
+        }
+
+        // 영상 제작 시뮬레이션
+        function generateVideo() {
+            const btn = document.getElementById('generate-btn');
+            const keyword = document.getElementById('keyword-input').value;
+            const count = document.getElementById('product-count').value;
+            
+            btn.innerHTML = '🔄 영상 제작 중...';
+            btn.disabled = true;
+            btn.classList.add('bg-gray-400');
+            
+            generateTimeout = setTimeout(() => {
+                videoCounter++;
+                const newVideo = {
+                    id: videoCounter,
+                    title: `${keyword} 추천 Top${count}`,
+                    thumbnail: '📱',
+                    date: new Date().toLocaleDateString('ko-KR')
+                };
+                
+                // 영상 목록에 추가
+                const videoList = document.getElementById('video-list');
+                const videoElement = document.createElement('div');
+                videoElement.className = 'border rounded-lg p-4 hover:shadow-md transition-shadow';
+                videoElement.innerHTML = `
+                    <div class="text-4xl mb-2 text-center">${newVideo.thumbnail}</div>
+                    <h4 class="font-medium text-sm mb-1">${newVideo.title}</h4>
+                    <p class="text-xs text-gray-600 mb-2">${newVideo.date}</p>
+                    <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded">완료</span>
+                `;
+                videoList.insertBefore(videoElement, videoList.firstChild);
+                
+                // 선택 목록에 추가
+                const select = document.getElementById('video-select');
+                const option = document.createElement('option');
+                option.value = newVideo.id;
+                option.textContent = `${newVideo.title} (${newVideo.date})`;
+                select.appendChild(option);
+                
+                // 카운터 업데이트
+                document.getElementById('video-count').textContent = videoCounter;
+                
+                btn.innerHTML = '📹 영상 제작';
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-400');
+                
+                alert('영상 제작이 완료되었습니다!');
+            }, 3000);
+        }
+
+        // 영상 선택
+        function selectVideo() {
+            const select = document.getElementById('video-select');
+            const selectedValue = select.value;
+            const selectedDiv = document.getElementById('selected-video');
+            const titleInput = document.getElementById('upload-title');
+            
+            if (selectedValue) {
+                const selectedText = select.options[select.selectedIndex].text;
+                const title = selectedText.split(' (')[0];
+                const date = selectedText.match(/\((.*?)\)/)[1];
+                
+                document.getElementById('video-title').textContent = title;
+                document.getElementById('video-date').textContent = `제작일: ${date}`;
+                titleInput.value = `${title} | 최저가 할인정보`;
+                selectedDiv.classList.remove('hidden');
+            } else {
+                selectedDiv.classList.add('hidden');
+                titleInput.value = '';
+            }
+        }
+
+        // 업로드 시뮬레이션
+        function uploadVideo() {
+            const select = document.getElementById('video-select');
+            if (!select.value) {
+                alert('업로드할 영상을 선택해주세요.');
+                return;
+            }
+            
+            const progressDiv = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progress-percent');
+            
+            progressDiv.classList.remove('hidden');
+            let progress = 0;
+            
+            uploadInterval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                progressPercent.textContent = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(uploadInterval);
+                    setTimeout(() => {
+                        progressDiv.classList.add('hidden');
+                        alert('유튜브 업로드가 완료되었습니다!');
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // 영상 제작 + 업로드
+        function generateAndUpload() {
+            generateVideo();
+            setTimeout(() => {
+                // 자동으로 새 영상 선택
+                const select = document.getElementById('video-select');
+                select.value = videoCounter;
+                selectVideo();
+                uploadVideo();
+            }, 3500);
+        }
+
+        // 스케줄러 토글
+        function toggleScheduler() {
+            isSchedulerRunning = !isSchedulerRunning;
+            const btn = document.getElementById('scheduler-btn');
+            const status = document.getElementById('scheduler-status');
+            const text = document.getElementById('scheduler-text');
+            
+            if (isSchedulerRunning) {
+                btn.innerHTML = '⏹️ 스케줄러 중지';
+                btn.className = btn.className.replace('bg-green-600', 'bg-red-600').replace('hover:bg-green-700', 'hover:bg-red-700');
+                status.className = status.className.replace('bg-gray-400', 'bg-green-500');
+                text.textContent = '실행중';
+            } else {
+                btn.innerHTML = '▶️ 스케줄러 시작';
+                btn.className = btn.className.replace('bg-red-600', 'bg-green-600').replace('hover:bg-red-700', 'hover:bg-green-700');
+                status.className = status.className.replace('bg-green-500', 'bg-gray-400');
+                text.textContent = '중지됨';
+            }
+        }
+
+        // 예약 추가
+        function addSchedule() {
+            const keywords = document.getElementById('schedule-keywords').value;
+            if (!keywords.trim()) {
+                alert('키워드를 입력해주세요.');
+                return;
+            }
+            
+            const keywordList = keywords.split('\n').filter(k => k.trim());
+            const table = document.getElementById('schedule-table');
+            
+            keywordList.forEach(keyword => {
+                scheduleCounter++;
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="p-2">${scheduleCounter}</td>
+                    <td class="p-2">${keyword.trim()}</td>
+                    <td class="p-2">user1@gmail.com</td>
+                    <td class="p-2">${new Date().toLocaleDateString('ko-KR')} ${new Date().toLocaleTimeString('ko-KR', {hour12: false})}</td>
+                    <td class="p-2"><span class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">대기</span></td>
+                    <td class="p-2"><button onclick="removeSchedule(${scheduleCounter})" class="text-red-600 hover:text-red-800">🗑️</button></td>
+                `;
+                table.appendChild(row);
+            });
+            
+            document.getElementById('schedule-keywords').value = '';
+            alert(`${keywordList.length}개의 예약이 등록되었습니다.`);
+        }
+
+        // 예약 삭제
+        function removeSchedule(id) {
+            if (confirm('이 예약을 삭제하시겠습니까?')) {
+                const rows = document.querySelectorAll('#schedule-table tr');
+                rows.forEach(row => {
+                    const deleteBtn = row.querySelector('button[onclick*="' + id + '"]');
+                    if (deleteBtn) {
+                        row.remove();
+                    }
+                });
+            }
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            // 오늘 날짜 설정
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('schedule-date').value = today;
+            
+            // 현재 시간 설정
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('schedule-time').value = timeString;
+        });
+    </script>
+</body>
+</html>
