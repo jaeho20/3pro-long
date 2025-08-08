@@ -1,0 +1,727 @@
+import React, { useState, useEffect } from 'react';
+import { Play, Square, Settings, Calendar, Video, Upload, Users, Search, Plus, Edit3, Trash2, RefreshCw, Download, FileSpreadsheet } from 'lucide-react';
+
+const YouTubeAliExpressApp = () => {
+  const [activeTab, setActiveTab] = useState('main');
+  const [selectedAccount, setSelectedAccount] = useState('');
+  const [accounts, setAccounts] = useState([
+    { id: 1, email: 'user1@gmail.com', channel: 'UCmO1eglNjtAf6dVUPe4rqUA', status: '연결됨' },
+    { id: 2, email: 'user2@gmail.com', channel: 'UCxN2fglNjtAf6dVUPe4rqUB', status: '연결됨' }
+  ]);
+  const [aliSettings, setAliSettings] = useState({
+    id: 'testuser123',
+    password: '********',
+    trackingId: 'default',
+    language: 'ko'
+  });
+  const [videoSettings, setVideoSettings] = useState({
+    keyword: '무선이어폰',
+    productCount: 5,
+    introDuration: 5,
+    bgmVolume: 50,
+    voiceVolume: 80
+  });
+  const [scheduleList, setScheduleList] = useState([
+    { id: 1, keyword: '무선이어폰', account: 'user1@gmail.com', date: '2025.1.18', time: '10:48', status: '완료' },
+    { id: 2, keyword: '블루투스스피커', account: 'user2@gmail.com', date: '2025.1.19', time: '14:30', status: '대기' },
+    { id: 3, keyword: '스마트워치', account: 'user1@gmail.com', date: '2025.1.20', time: '16:00', status: '대기' }
+  ]);
+  const [isSchedulerRunning, setIsSchedulerRunning] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedVideos, setGeneratedVideos] = useState([
+    { id: 1, title: '무선이어폰 추천 Top5', thumbnail: '🎧', status: '완료', date: '2025.1.17' },
+    { id: 2, title: '블루투스스피커 Best 10', thumbnail: '🔊', status: '완료', date: '2025.1.16' }
+  ]);
+
+  // 시뮬레이션 함수들
+  const simulateVideoGeneration = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      const newVideo = {
+        id: Date.now(),
+        title: `${videoSettings.keyword} 추천 Top${videoSettings.productCount}`,
+        thumbnail: '📱',
+        status: '완료',
+        date: new Date().toLocaleDateString('ko-KR')
+      };
+      setGeneratedVideos(prev => [newVideo, ...prev]);
+      setIsGenerating(false);
+      alert('영상 제작이 완료되었습니다!');
+    }, 3000);
+  };
+
+  const simulateUpload = () => {
+    if (!selectedVideo) {
+      alert('업로드할 영상을 선택해주세요.');
+      return;
+    }
+    setUploadProgress(0);
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          alert('유튜브 업로드가 완료되었습니다!');
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
+  };
+
+  const toggleScheduler = () => {
+    setIsSchedulerRunning(!isSchedulerRunning);
+  };
+
+  const addSchedule = () => {
+    const keyword = prompt('키워드를 입력하세요:');
+    if (keyword) {
+      const newSchedule = {
+        id: Date.now(),
+        keyword,
+        account: selectedAccount || accounts[0].email,
+        date: new Date().toLocaleDateString('ko-KR'),
+        time: new Date().toLocaleTimeString('ko-KR', { hour12: false }),
+        status: '대기'
+      };
+      setScheduleList(prev => [...prev, newSchedule]);
+    }
+  };
+
+  const removeSchedule = (id) => {
+    setScheduleList(prev => prev.filter(item => item.id !== id));
+  };
+
+  // 메인 화면 컴포넌트
+  const MainScreen = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 유튜브 정보 */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Video className="w-5 h-5 text-red-500" />
+            유튜브 정보
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">계정 설정</label>
+              <select 
+                value={selectedAccount} 
+                onChange={(e) => setSelectedAccount(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">계정 선택</option>
+                {accounts.map(account => (
+                  <option key={account.id} value={account.email}>{account.email}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">채널명</label>
+              <input 
+                type="text" 
+                value={accounts[0]?.channel || ''} 
+                readOnly
+                className="w-full p-2 border rounded-md bg-gray-50"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 알리익스프레스 정보 */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Search className="w-5 h-5 text-orange-500" />
+            알리익스프레스 정보
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">아이디</label>
+              <input 
+                type="text" 
+                value={aliSettings.id}
+                onChange={(e) => setAliSettings(prev => ({...prev, id: e.target.value}))}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">비밀번호</label>
+              <input 
+                type="password" 
+                value={aliSettings.password}
+                onChange={(e) => setAliSettings(prev => ({...prev, password: e.target.value}))}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">트래킹 ID</label>
+              <input 
+                type="text" 
+                value={aliSettings.trackingId}
+                onChange={(e) => setAliSettings(prev => ({...prev, trackingId: e.target.value}))}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 영상 제작 */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Edit3 className="w-5 h-5 text-purple-500" />
+            영상 제작
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">검색어</label>
+              <input 
+                type="text" 
+                value={videoSettings.keyword}
+                onChange={(e) => setVideoSettings(prev => ({...prev, keyword: e.target.value}))}
+                placeholder="수집할 상품 키워드"
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">상품수</label>
+              <select 
+                value={videoSettings.productCount}
+                onChange={(e) => setVideoSettings(prev => ({...prev, productCount: parseInt(e.target.value)}))}
+                className="w-full p-2 border rounded-md"
+              >
+                {[3,5,7,10].map(num => (
+                  <option key={num} value={num}>{num}개</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">BGM 볼륨: {videoSettings.bgmVolume}%</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={videoSettings.bgmVolume}
+                onChange={(e) => setVideoSettings(prev => ({...prev, bgmVolume: parseInt(e.target.value)}))}
+                className="w-full"
+              />
+            </div>
+            <button 
+              onClick={simulateVideoGeneration}
+              disabled={isGenerating}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  영상 제작 중...
+                </>
+              ) : (
+                <>
+                  <Video className="w-4 h-4" />
+                  영상 제작
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 유튜브 포스팅 섹션 */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <Upload className="w-5 h-5 text-red-500" />
+          유튜브 포스팅
+        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">영상 선택</label>
+            <select 
+              value={selectedVideo?.id || ''}
+              onChange={(e) => {
+                const video = generatedVideos.find(v => v.id === parseInt(e.target.value));
+                setSelectedVideo(video);
+              }}
+              className="w-full p-2 border rounded-md mb-4"
+            >
+              <option value="">영상을 선택하세요</option>
+              {generatedVideos.map(video => (
+                <option key={video.id} value={video.id}>
+                  {video.title} ({video.date})
+                </option>
+              ))}
+            </select>
+            
+            {selectedVideo && (
+              <div className="bg-gray-50 p-4 rounded-md mb-4">
+                <div className="text-lg mb-2">{selectedVideo.thumbnail}</div>
+                <h4 className="font-medium">{selectedVideo.title}</h4>
+                <p className="text-sm text-gray-600">제작일: {selectedVideo.date}</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">제목</label>
+                <input 
+                  type="text" 
+                  value={selectedVideo ? `${selectedVideo.title} | 최저가 할인정보` : ''}
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">설명</label>
+                <textarea 
+                  rows="4"
+                  value="🛒 최저가 상품 링크와 할인 쿠폰 정보를 확인하세요!\n\n⭐ 구독과 좋아요는 큰 힘이 됩니다!\n\n#알리익스프레스 #추천상품 #할인정보"
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="private" />
+                <label htmlFor="private" className="text-sm">비공개</label>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="space-y-4">
+              {uploadProgress > 0 && (
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>업로드 진행률</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+              
+              <button 
+                onClick={simulateUpload}
+                className="w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 flex items-center justify-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                유튜브 업로드
+              </button>
+              
+              <button 
+                onClick={() => {
+                  simulateVideoGeneration();
+                  setTimeout(() => simulateUpload(), 3500);
+                }}
+                className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 flex items-center justify-center gap-2"
+              >
+                <Video className="w-4 h-4" />
+                영상 제작 + 업로드
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 제작된 영상 목록 */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-4">제작된 영상 목록</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {generatedVideos.map(video => (
+            <div key={video.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div className="text-4xl mb-2 text-center">{video.thumbnail}</div>
+              <h4 className="font-medium text-sm mb-1">{video.title}</h4>
+              <p className="text-xs text-gray-600 mb-2">{video.date}</p>
+              <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                {video.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 예약발행 화면 컴포넌트
+  const ScheduleScreen = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">예약발행</h2>
+        <div className="flex gap-2">
+          <button 
+            onClick={toggleScheduler}
+            className={`px-4 py-2 rounded-md flex items-center gap-2 ${
+              isSchedulerRunning 
+                ? 'bg-red-600 text-white hover:bg-red-700' 
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            {isSchedulerRunning ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            스케줄러 {isSchedulerRunning ? '중지' : '시작'}
+          </button>
+        </div>
+      </div>
+
+      {/* 간편 예약 등록 */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-4">간편 예약등록</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">키워드</label>
+            <textarea 
+              rows="3"
+              placeholder="키워드를 줄바꿈으로 구분하여 입력"
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">시작날짜</label>
+            <input 
+              type="date" 
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">시작시간</label>
+            <input 
+              type="time" 
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">발행간격 (시간)</label>
+            <input 
+              type="number" 
+              min="1" 
+              defaultValue="24"
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <button 
+            onClick={addSchedule}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            예약 등록
+          </button>
+          <button className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4" />
+            엑셀 대량등록
+          </button>
+          <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            엑셀 내보내기
+          </button>
+        </div>
+      </div>
+
+      {/* 예약 목록 */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-4">예약 목록</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left p-2">ID</th>
+                <th className="text-left p-2">키워드</th>
+                <th className="text-left p-2">계정</th>
+                <th className="text-left p-2">발행일시</th>
+                <th className="text-left p-2">상태</th>
+                <th className="text-left p-2">작업</th>
+              </tr>
+            </thead>
+            <tbody>
+              {scheduleList.map((item, index) => (
+                <tr key={item.id} className="border-b hover:bg-gray-50">
+                  <td className="p-2">{index + 1}</td>
+                  <td className="p-2">{item.keyword}</td>
+                  <td className="p-2">{item.account}</td>
+                  <td className="p-2">{item.date} {item.time}</td>
+                  <td className="p-2">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      item.status === '완료' ? 'bg-green-100 text-green-800' : 
+                      item.status === '대기' ? 'bg-yellow-100 text-yellow-800' : 
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="p-2">
+                    <button 
+                      onClick={() => removeSchedule(item.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 디자인 화면 컴포넌트
+  const DesignScreen = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">디자인 설정</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 설정 패널 */}
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-bold mb-4">배경 및 폰트</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">배경이미지 (1920×1080)</label>
+                <button className="w-full p-2 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400">
+                  클릭하여 이미지 업로드
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">두꺼운 폰트 (TTF)</label>
+                <button className="w-full p-2 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400">
+                  폰트 파일 업로드
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">얇은 폰트 (TTF)</label>
+                <button className="w-full p-2 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400">
+                  폰트 파일 업로드
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-bold mb-4">텍스트 설정</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">제목 텍스트</label>
+                <input 
+                  type="text" 
+                  defaultValue="[SEARCH] TOP[TOTAL]"
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm font-medium mb-1">폰트 크기</label>
+                  <input 
+                    type="number" 
+                    defaultValue="45"
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">텍스트 색상</label>
+                  <input 
+                    type="color" 
+                    defaultValue="#00bcd4"
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="bold" defaultChecked />
+                <label htmlFor="bold" className="text-sm">Bold</label>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <label className="flex items-center gap-2">
+                  <input type="radio" name="align" value="left" defaultChecked />
+                  <span className="text-sm">왼쪽</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="radio" name="align" value="center" />
+                  <span className="text-sm">중앙</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="radio" name="align" value="right" />
+                  <span className="text-sm">오른쪽</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-bold mb-4">상품 이미지 설정</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">상품 이미지 크기</label>
+                <input 
+                  type="range" 
+                  min="50" 
+                  max="200" 
+                  defaultValue="110"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">테두리 두께</label>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="10" 
+                  defaultValue="0"
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 미리보기 */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-bold mb-4">미리보기</h3>
+          <div className="border-2 border-gray-200 rounded-lg p-4 bg-gradient-to-br from-purple-100 to-blue-100 min-h-96 flex flex-col items-center justify-center">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-cyan-600 mb-2">무선이어폰 TOP 5</h2>
+              <p className="text-lg text-purple-600">🔥 인기상품 🔥</p>
+            </div>
+            
+            <div className="grid grid-cols-5 gap-4 mb-6">
+              {['🎧', '🎵', '📱', '⚡', '🔊'].map((icon, i) => (
+                <div key={i} className="w-16 h-16 bg-white rounded-lg shadow-md flex items-center justify-center text-2xl">
+                  {icon}
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                제품 및 소량정보는 더보기 또는 고정댓글 확인!
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex gap-2">
+            <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+              미리보기 업데이트
+            </button>
+            <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+              디자인 저장
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 계정관리 화면 컴포넌트  
+  const AccountScreen = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">계정 관리</h2>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          계정 추가
+        </button>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-bold mb-4">등록된 계정</h3>
+        <div className="space-y-4">
+          {accounts.map(account => (
+            <div key={account.id} className="border rounded-lg p-4 flex justify-between items-center">
+              <div>
+                <h4 className="font-medium">{account.email}</h4>
+                <p className="text-sm text-gray-600">채널: {account.channel}</p>
+                <span className={`inline-block px-2 py-1 rounded text-xs ${
+                  account.status === '연결됨' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {account.status}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button className="text-blue-600 hover:text-blue-800">
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button className="text-red-600 hover:text-red-800">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const tabs = [
+    { id: 'main', label: '메인화면', icon: Settings },
+    { id: 'schedule', label: '예약발행', icon: Calendar },
+    { id: 'design', label: '디자인', icon: Edit3 },
+    { id: 'accounts', label: '계정관리', icon: Users }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* 헤더 */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <h1 className="text-2xl font-bold text-gray-900">유튜브 알리익스프레스 롱폼</h1>
+          <p className="text-gray-600">자동 영상 제작 및 업로드 시스템</p>
+        </div>
+      </div>
+
+      {/* 탭 네비게이션 */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4">
+          <nav className="flex space-x-8">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* 상태 표시줄 */}
+      <div className="bg-blue-50 border-b border-blue-200">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${isSchedulerRunning ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                스케줄러: {isSchedulerRunning ? '실행중' : '중지됨'}
+              </span>
+              <span>연결된 계정: {accounts.length}개</span>
+              <span>제작된 영상: {generatedVideos.length}개</span>
+            </div>
+            <div className="text-gray-600">
+              마지막 업데이트: {new Date().toLocaleString('ko-KR')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 메인 콘텐츠 */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {activeTab === 'main' && <MainScreen />}
+        {activeTab === 'schedule' && <ScheduleScreen />}
+        {activeTab === 'design' && <DesignScreen />}
+        {activeTab === 'accounts' && <AccountScreen />}
+      </div>
+    </div>
+  );
+};
+
+export default YouTubeAliExpressApp;
